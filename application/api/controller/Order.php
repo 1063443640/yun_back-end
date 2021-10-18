@@ -4,6 +4,7 @@ namespace app\api\controller;
 
 use app\admin\model\Order as ModelOrder;
 use app\admin\model\Profit;
+use app\admin\model\ProOrder;
 use app\admin\model\Weixin;
 use app\common\controller\Home;
 
@@ -64,24 +65,32 @@ class Order extends Home
         $page_size = 5;
         $wechat_model = new Weixin();
         $phone = $wechat_model->where("open_id", $this->open_id)->value("phone");
-        $where["positionId"] = ["=", $phone];
-        $profit_model = new Profit();
+        $flag = $wechat_model->where("open_id", $this->open_id)->value("flag");
+        if ($flag == 0) {
+            $where["positionId"] = ["=", $phone];
+            $profit_model = new Profit();
+        }else{
+            $where["open_id"] = ["=", $this->open_id];
+            $profit_model = new ProOrder();
+        }
         if ($index == 0) {
-            $profit = $profit_model->where($where)->order("orderTime","desc")->page($current_page, $page_size)->select();
+            $profit = $profit_model->where($where)->order("orderTime", "desc")->page($current_page, $page_size)->select();
             $day_count = $profit_model->where("orderTime", "between time", [$day_startTime, $endTime])->where($where)->count();
             $month_count = $profit_model->where("orderTime", "between time", [$month_startTime, $endTime])->where($where)->count();
         } elseif ($index == 1) {
-            $profit = $profit_model->where($where)->order("orderTime","desc")->page($current_page, $page_size)->where("validCode", "in", ["16", "17"])->select();
+            $profit = $profit_model->where($where)->order("orderTime", "desc")->page($current_page, $page_size)->where("validCode", "in", ["16", "17"])->select();
             $day_count = $profit_model->where("validCode", "in", ["16", "17"])->where("orderTime", "between time", [$day_startTime, $endTime])->where($where)->count();
             $month_count = $profit_model->where("validCode", "in", ["16", "17"])->where("orderTime", "between time", [$month_startTime, $endTime])->where($where)->count();
         } else {
-            $profit = $profit_model->where($where)->order("orderTime","desc")->page($current_page, $page_size)->where("validCode", "not in", ["16", "17"])->select();
+            $profit = $profit_model->where($where)->order("orderTime", "desc")->page($current_page, $page_size)->where("validCode", "not in", ["16", "17"])->select();
             $day_count = $profit_model->where("validCode", "not in", ["16", "17"])->where("orderTime", "between time", [$day_startTime, $endTime])->where($where)->count();
             $month_count = $profit_model->where("validCode", "not in", ["16", "17"])->where("orderTime", "between time", [$month_startTime, $endTime])->where($where)->count();
         }
         foreach ($profit as $key => $value) {
+            // pro版本用
+            $value["estimateFee1"] = $value["estimateFee"];
             $value["estimateFee"] = $value["estimateFee"] * 0.9 * 0.7;
-            $profit[$key]=$value;
+            $profit[$key] = $value;
         }
         $res["profit"] = $profit;
         $res["day_count"] = $day_count;
@@ -115,8 +124,8 @@ class Order extends Home
         $list = [];
         $day_count = 0;
         $month_count = 0;
-        if ($subordinate_code!=[]) {
-            $subordinate_profit = $profit_model->order("orderTime","desc")->where($where)->page($current_page, $page_size)->where("positionId", "in", $subordinate_phone)->select();
+        if ($subordinate_code != []) {
+            $subordinate_profit = $profit_model->order("orderTime", "desc")->where($where)->page($current_page, $page_size)->where("positionId", "in", $subordinate_phone)->select();
             $day_count += $profit_model->where("orderTime", "between time", [$day_startTime, $endTime])->where("positionId", "in", $subordinate_phone)->where($where)->count();
             $month_count += $profit_model->where("orderTime", "between time", [$month_startTime, $endTime])->where("positionId", "in", $subordinate_phone)->where($where)->count();
             foreach ($subordinate_profit as $key => $value) {
@@ -126,7 +135,7 @@ class Order extends Home
             // 下下级收益
             $subordinate_subordinate_phone = $wechat_model->where("superior_invitation_code", "in", $subordinate_code)->column("phone");
             if ($subordinate_subordinate_phone) {
-                $subordinate_subordinate_profit = $profit_model->order("orderTime","desc")->where($where)->page($current_page, $page_size)->where("positionId", "in", $subordinate_subordinate_phone)->select();
+                $subordinate_subordinate_profit = $profit_model->order("orderTime", "desc")->where($where)->page($current_page, $page_size)->where("positionId", "in", $subordinate_subordinate_phone)->select();
                 $day_count += $profit_model->where("orderTime", "between time", [$day_startTime, $endTime])->where("positionId", "in", $subordinate_subordinate_phone)->where($where)->count();
                 $month_count += $profit_model->where("orderTime", "between time", [$month_startTime, $endTime])->where("positionId", "in", $subordinate_subordinate_phone)->where($where)->count();
                 foreach ($subordinate_subordinate_profit as $key1 => $value1) {
@@ -168,7 +177,7 @@ class Order extends Home
         $subordinate_phone = $wechat_model->where("superior_invitation_code", $invitation_code)->column("phone");
         $team_day = 0;
         $team_month = 0;
-        if ($subordinate_code!=[]) {
+        if ($subordinate_code != []) {
             $day_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("modifyTime", "between time", [$startTime, $endTime])->sum("estimateFee");
 
             $month_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("modifyTime", "between time", [$m, $time])->sum("estimateFee");

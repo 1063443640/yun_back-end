@@ -34,6 +34,8 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                         {field: 'phone', title: __('Phone'), operate: 'LIKE'},
                         {field: 'flag', title: __('是否为顶级代理'),formatter: Table.api.formatter.label,searchList:{0:"否",1:"是"},custom:{1: 'warning', 0: 'success'}},
                         {field: 'invitation_code', title: __('Invitation_code'), operate: 'LIKE'},
+                        {field: 'unionId', title: __('联盟ID'), operate: 'LIKE'},
+                        {field: 'key', title: __('查询订单key'), operate: 'LIKE',},
                         {field: 'superior_invitation_code', title: __('Superior_invitation_code'), operate: 'LIKE'},
                         {field: 'month_my_profit', title: __('Month_my_profit'), operate:'BETWEEN',sortable:true ,width:"120"},
                         {field: 'month_team_profit', title: __('Month_team_profit'), operate:'BETWEEN',sortable:true,width:"120"},

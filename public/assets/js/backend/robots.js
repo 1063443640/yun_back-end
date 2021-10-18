@@ -33,7 +33,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                         {field: 'vcHeadImgUrl', title: __("微信头像"), operate: 'LIKE',formatter: Table.api.formatter.image},
                         {field: 'type', title: __('Type'), operate: 'LIKE',searchList:{"user":"用户号","platform":"平台号"},formatter:Table.api.formatter.label},
                         {field: 'status', title: __('Status'),formatter: Table.api.formatter.label,searchList:{0:"掉线",1:"在线"},custom:{1: 'success', 0: 'danger'}},
-                        {field: 'flag', title: __('Flag'), formatter: Table.api.formatter.label,searchList:{1:"空闲",2:"忙碌"},custom:{1: 'success', 0: 'danger'}},
+                        {field: 'flag', title: __('Flag'), formatter: Table.api.formatter.label,searchList:{1:"空闲",0:"忙碌"},custom:{1: 'success', 0: 'danger'}},
                         {field: 'wx_id', title: __('Wx_id'), operate: 'LIKE'},
                         {field: 'phone', title: __('Phone'), operate: 'LIKE'},
                         {field: 'remark', title: __('Remark'), operate: 'LIKE'},

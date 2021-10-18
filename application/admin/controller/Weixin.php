@@ -2,6 +2,7 @@
 
 namespace app\admin\controller;
 
+use app\admin\model\Weixin as ModelWeixin;
 use app\common\controller\Backend;
 use think\Db;
 
@@ -12,7 +13,7 @@ use think\Db;
  */
 class Weixin extends Backend
 {
-    
+
     /**
      * Weixin模型对象
      * @var \app\admin\model\Weixin
@@ -36,7 +37,7 @@ class Weixin extends Backend
      * 因此在当前控制器中可不用编写增删改查的代码,除非需要自己控制这部分逻辑
      * 需要将application/admin/library/traits/Backend.php中对应的方法复制到当前控制器,然后进行修改
      */
-    
+
 
     /**
      * 查看
@@ -55,14 +56,13 @@ class Weixin extends Backend
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
 
             $list = $this->model
-                    
-                    ->where($where)
-                    ->order($sort, $order)
-                    ->paginate($limit);
+
+                ->where($where)
+                ->order($sort, $order)
+                ->paginate($limit);
 
             foreach ($list as $row) {
-                $row->visible(['id',"flag",'open_id','nickname','image','money','number','phone','invitation_code','superior_invitation_code','month_my_profit','month_team_profit','month_profit','all_profit','withdrawal_amount','createtime']);
-                
+                $row->visible(['id', "flag", 'open_id', 'nickname', 'image', 'money', 'number', 'phone', 'invitation_code', 'superior_invitation_code', 'month_my_profit', 'month_team_profit', 'month_profit', 'unionId','key', 'all_profit', 'withdrawal_amount', 'createtime']);
             }
 
             $result = array("total" => $list->total(), "rows" => $list->items());
@@ -102,7 +102,23 @@ class Weixin extends Backend
                         $row->validateFailException(true)->validate($validate);
                     }
                     $invitation_code = $params["invitation_code"];
-                    
+                    $weixin_model = new ModelWeixin();
+                    $superior_invitation_code = $weixin_model->where("open_id", $params["open_id"])->value("invitation_code");
+                    if ($invitation_code != $superior_invitation_code) {
+                        if ($weixin_model->where("invitation_code", $invitation_code)->find()) {
+                            $this->error(__('邀请码已存在'));
+                        }
+                    }
+
+                    $superior = $weixin_model->where("superior_invitation_code", $superior_invitation_code)->select();
+                    $superior = collection($superior)->toArray();
+                    $arr = [];
+                    foreach ($superior as $value) {
+                        $sicode["id"] = $value["id"];
+                        $sicode["superior_invitation_code"] = $invitation_code;
+                        array_push($arr, $sicode);
+                    }
+                    $weixin_model->saveAll($arr);
                     $result = $row->allowField(true)->save($params);
                     Db::commit();
                 } catch (ValidateException $e) {
@@ -126,5 +142,4 @@ class Weixin extends Backend
         $this->view->assign("row", $row);
         return $this->view->fetch();
     }
-
 }

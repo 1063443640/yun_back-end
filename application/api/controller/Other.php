@@ -360,10 +360,10 @@ class Other extends Home
         $open_id = $this->open_id;
         $wechat_model = new Weixin();
         $superior_invitation_code = $wechat_model->where("open_id", $open_id)->value("superior_invitation_code");
-        if($superior_invitation_code=="10086"){
-            $superior_nickname="最顶级";
-        }else{
-           $superior_nickname = $wechat_model->where("invitation_code", $superior_invitation_code)->value("nickname"); 
+        if ($superior_invitation_code == "10086") {
+            $superior_nickname = "最顶级";
+        } else {
+            $superior_nickname = $wechat_model->where("invitation_code", $superior_invitation_code)->value("nickname");
         }
         $this->success('请求成功', $superior_nickname);
     }
@@ -408,7 +408,7 @@ class Other extends Home
         $request = request();
         $data = $request->param();
         $code = $data["code"];
-        if(trim($code)==""){
+        if (trim($code) == "") {
             $this->error('邀请码不能为空');
         }
         $open_id = $this->open_id;
@@ -426,7 +426,7 @@ class Other extends Home
     public function get_free_robot()
     {
         $robots_model = new Robots();
-        $robots = $robots_model->where("type", "platform")->where("flag", 1)->where("status",1)->select();
+        $robots = $robots_model->where("type", "platform")->where("flag", 1)->where("status", 1)->select();
         $robot = array_rand($robots, 1);
         $this->success('请求成功', $robots[$robot]);
     }
@@ -444,6 +444,8 @@ class Other extends Home
     {
         $request = request();
         $open_id = $this->open_id;
+        $wechat_model = new Weixin();
+        $wechat = $wechat_model->where("open_id", $open_id)->find();
         $data = $request->param();
         $vcChatRoomSerialNo = $data["vcChatRoomSerialNo"];
         $vcRobotSerialNo = $data["vcRobotSerialNo"];
@@ -457,6 +459,9 @@ class Other extends Home
             $source = $source_model->where("id", $source_id)->find();
             $source["img"] = $group["img"];
             $source["send"] = $group["send"];
+            if ($wechat->flag == 1) {
+                $source["subside"] = $group["subside"];
+            }
             $this->success('请求成功', $source);
         }
     }
@@ -466,6 +471,8 @@ class Other extends Home
     {
         $request = request();
         $open_id = $this->open_id;
+        $wechat_model = new Weixin();
+        $wechat = $wechat_model->where("open_id", $open_id)->find();
         $data = $request->param();
         $vcChatRoomSerialNo = $data["vcChatRoomSerialNo"];
         $vcRobotSerialNo = $data["vcRobotSerialNo"];
@@ -473,8 +480,6 @@ class Other extends Home
         $group_model = new Group();
         $type = $robots_model->where("number", $vcRobotSerialNo)->value("type");
         $send = $group_model->where("open_id", $open_id)->where("vcChatRoomSerialNo", $vcChatRoomSerialNo)->where("vcRobotSerialNo", $vcRobotSerialNo)->value("send");
-        $wechat_model = new Weixin();
-        $wechat = $wechat_model->where("open_id", $open_id)->find();
         $group = $group_model->where("open_id", $open_id)->where("vcChatRoomSerialNo", $vcChatRoomSerialNo)->where("vcRobotSerialNo", $vcRobotSerialNo)->find();
         if ($group["flag"] == "platform") {
             if ($group["send"] == 2 or $group["send"] == -1) {
@@ -498,12 +503,18 @@ class Other extends Home
             $group->source_id = $source_id;
             $group->img = $img;
             $group->send = $send;
+            if ($wechat->flag == 1) {
+                $group->subside = $data["subsidy_id"];
+            }
             $group->save();
         } else {
             $res["source_id"] = $source_id;
             $res["img"] = $img;
             $res["send"] = $send;
             $res["vcChatRoomSerialNo"] = $vcChatRoomSerialNo;
+            if ($wechat->flag == 1) {
+                $res["subside"] = $data["subsidy_id"];
+            }
             $res["vcRobotSerialNo"] = $vcRobotSerialNo;
             $res["open_id"] = $open_id;
             $res["flag"] = "user";
@@ -547,7 +558,7 @@ class Other extends Home
             $subordinate = 0;
             $subordinate_subordinate = 0;
         } else {
-            $subordinate_code = $wechat_model->where('open_id',"<>", $open_id)->where("superior_invitation_code", $invitation_code)->column("invitation_code");
+            $subordinate_code = $wechat_model->where('open_id', "<>", $open_id)->where("superior_invitation_code", $invitation_code)->column("invitation_code");
             $subordinate = $wechat_model->where("superior_invitation_code", $invitation_code)->count();
             // 下下级
             if ($subordinate_code == []) {

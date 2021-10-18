@@ -63,6 +63,7 @@ class Robots extends Backend
                 $row->visible(['id', 'open_id', 'number', 'type', 'status', 'flag', 'wx_id', 'phone', 'remark']);
             }
             $items = $list->items();
+            $items =collection($items)->toArray();
             $yun_token_model = new YunToken();
             $token = $yun_token_model->where("id", "1")->value('token');
             foreach ($items as $key => &$value) {
@@ -75,17 +76,16 @@ class Robots extends Backend
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                     'merchantNo:202108060036284',
                     "token:$token",
-                    'Content-Type: application/json; charset=utf-8',
+                    'Content-Type: application/json; charset=utf-8', 
                     'Content-Length: ' . strlen($jsonStr)
                 ));
                 $response = curl_exec($ch);
                 curl_close($ch);
                 $jsondecode = json_decode($response);
                 $data = $jsondecode->Data;
-                $items[$key]["vcHeadImgUrl"]=$data->RobotList[0]->vcHeadImgUrl;
-                $items[$key]["vcNickName"]=$data->RobotList[0]->vcNickName;
+                $value["vcHeadImgUrl"]=$data->RobotList[0]->vcHeadImgUrl;
+                $value["vcNickName"]=$data->RobotList[0]->vcNickName;
             }
-            
             $result = array("total" => $list->total(), "rows" => $items);
             return json($result);
         }

@@ -25,19 +25,8 @@ class Robots extends Model
 
     // 追加属性
     protected $append = [
-        "vcNickName",
-        "vcHeadImgUrl"
     ];
     
-    public function getVcNickNameAttr($value, $data)
-    {
-        return  '';
-    }
-    
-    public function getVcHeadImgUrlAttr($value, $data)
-    {
-        return  '';
-    }
 
 
 
