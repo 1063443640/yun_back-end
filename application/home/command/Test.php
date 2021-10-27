@@ -97,19 +97,20 @@ class Test extends Command
                                 $url = json_decode($data)->Data;
                                 // dump($value["vcChatRoomSerialNo"]."++++".$url);
                                 if ($url != "") {
-                                    dump("原message" . $message);
+                                    // dump("原message" . $message);
                                     // dump("value1".$value1);
                                     // dump("url".$url);
                                     $change_message = str_replace($value1, $url, $change_message);
-                                    dump("替换后message" . $change_message);
+                                    // dump("替换后message" . $change_message);
                                 }
                             }
                         }
                     }
                     $str = preg_replace($res1, "", $change_message);
+                    $nMsgNum = time();
 
                     $data = array(
-                        'nMsgNum' => time(),
+                        'nMsgNum' => $nMsgNum,
                         'nMsgType' => 2001,
                         'msgContent' => $str,
                         'nVoiceTime' => 0,
@@ -146,6 +147,15 @@ class Test extends Command
                     ));
                     $response = curl_exec($ch);
                     curl_close($ch);
+
+                    $message["open_id"] = $value["open_id"];
+                    $message["vcRobotSerialNo"] = $vcRobotSerialNo;
+                    $message["vcChatRoomSerialNo"] = $vcChatRoomSerialNo;
+                    $message["content"] = $str;
+                    $message["contentId"] = $nMsgNum;
+                    $message_model = new Message();
+                    $message_model->allow(true)->save($message);
+
 
                     // dump($matches);
                     // dump("\n");
