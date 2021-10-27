@@ -166,8 +166,8 @@ class Order extends Home
         // $where["positionId"] = ['=', $phone];
         $where["validCode"] = ["in", ["16", "17"]];
         $profit_model = new Profit();
-        $day_effective_order = $profit_model->where("positionId", '=', $phone)->where($where)->where("modifyTime", "between time", [$startTime, $endTime])->sum("estimateFee");
-        $month_effective_order = $profit_model->where("positionId", '=', $phone)->where($where)->where("modifyTime", "between time", [$m, $time])->sum("estimateFee");
+        $day_effective_order = $profit_model->where("positionId", '=', $phone)->where($where)->where("orderTime", "between time", [$startTime, $endTime])->sum("estimateFee");
+        $month_effective_order = $profit_model->where("positionId", '=', $phone)->where($where)->where("orderTime", "between time", [$m, $time])->sum("estimateFee");
         $day = $day_effective_order * 0.9 * 0.7;
         $month = $month_effective_order * 0.9 * 0.7;
         $res["day"] = $day;
@@ -178,18 +178,18 @@ class Order extends Home
         $team_day = 0;
         $team_month = 0;
         if ($subordinate_code != []) {
-            $day_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("modifyTime", "between time", [$startTime, $endTime])->sum("estimateFee");
+            $day_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("orderTime", "between time", [$startTime, $endTime])->sum("estimateFee");
 
-            $month_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("modifyTime", "between time", [$m, $time])->sum("estimateFee");
+            $month_team_effective_order = $profit_model->where("positionId", "in", $subordinate_phone)->where($where)->where("orderTime", "between time", [$m, $time])->sum("estimateFee");
             // dump($subordinate_profit);
             $team_day += $day_team_effective_order * 0.9 * 0.2;
             $team_month += $month_team_effective_order * 0.9 * 0.2;
             // 下下级收益
             $subordinate_subordinate_phone = $wechat_model->where("superior_invitation_code", "in", $subordinate_code)->column("phone");
             if ($subordinate_subordinate_phone) {
-                $day_team_effective_order = $profit_model->where($where)->where("positionId", "in", $subordinate_subordinate_phone)->where("modifyTime", "between time", [$startTime, $endTime])->sum("estimateFee");
+                $day_team_effective_order = $profit_model->where($where)->where("positionId", "in", $subordinate_subordinate_phone)->where("orderTime", "between time", [$startTime, $endTime])->sum("estimateFee");
 
-                $month_team_effective_order = $profit_model->where($where)->where("positionId", "in", $subordinate_subordinate_phone)->where("modifyTime", "between time", [$m, $time])->sum("estimateFee");
+                $month_team_effective_order = $profit_model->where($where)->where("positionId", "in", $subordinate_subordinate_phone)->where("orderTime", "between time", [$m, $time])->sum("estimateFee");
                 $team_day += $day_team_effective_order * 0.9 * 0.1;
                 $team_month += $month_team_effective_order * 0.9 * 0.1;
             }

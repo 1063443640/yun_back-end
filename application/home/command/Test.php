@@ -65,6 +65,8 @@ class Test extends Command
                     $change_message = $message;
                     $open_id =  $value["open_id"];
                     $phone = $wechat_model->where("open_id", $open_id)->value("phone");
+                    $wx_flag = $wechat_model->where("open_id", $open_id)->value("flag");
+                    $unionId = $wechat_model->where("open_id", $open_id)->value("unionId");
                     $flag = false;
                     $url_flag = false;
                     if (count($matches) > 0) {
@@ -75,7 +77,11 @@ class Test extends Command
                         foreach ($url_matches[0] as $key1 => $value1) {
                             if (strpos($value1, "u.jd") !== false) {
                                 $curl  =  curl_init();
-                                $post_data = array("appkey" => "ByEwACeiKsZTd7hDY", "material_id" => $value1, "union_id" => "1001695308", "position_id" => $phone);
+                                if ($wx_flag == 1) {
+                                    $post_data = array("appkey" => "ByEwACeiKsZTd7hDY", "material_id" => $value1, "union_id" => $unionId, "position_id" => "10086");
+                                } else {
+                                    $post_data = array("appkey" => "ByEwACeiKsZTd7hDY", "material_id" => $value1, "union_id" => "1001695308", "position_id" => $phone);
+                                }
                                 $url = "http://api.mkstone.club/api/v1/open/jd/getPromotion";
                                 curl_setopt($curl, CURLOPT_URL, $url);
                                 //设置获取的信息以文件流的形式返回，而不是直接输出。
@@ -91,11 +97,11 @@ class Test extends Command
                                 $url = json_decode($data)->Data;
                                 // dump($value["vcChatRoomSerialNo"]."++++".$url);
                                 if ($url != "") {
-                                    dump("原message".$message);
+                                    dump("原message" . $message);
                                     // dump("value1".$value1);
                                     // dump("url".$url);
                                     $change_message = str_replace($value1, $url, $change_message);
-                                    dump("替换后message".$change_message);
+                                    dump("替换后message" . $change_message);
                                 }
                             }
                         }

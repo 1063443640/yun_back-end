@@ -408,15 +408,21 @@ class Other extends Home
         $request = request();
         $data = $request->param();
         $code = $data["code"];
+        $wechat_model = new Weixin();
+        $open_id = $this->open_id;
+        if ($wechat_model->where("open_id", $open_id)->where("superior_invitation_code","<>" ,"")->find()) {
+            $this->success('添加成功');
+        }
         if (trim($code) == "") {
             $this->error('邀请码不能为空');
         }
-        $open_id = $this->open_id;
-        $wechat_model = new Weixin();
         if (!$wechat_model->where("invitation_code", $code)->find()) {
             $this->error('邀请码错误');
         }
         $wechat = $wechat_model->where("open_id", $open_id)->find();
+        if($wechat->invitation_code==$code){
+            $this->error('邀请码不能填自己的');
+        }
         $wechat->superior_invitation_code = $code;
         $wechat->save();
         $this->success('添加成功');
@@ -608,10 +614,7 @@ class Other extends Home
         $robots_model = new Robots();
         $robot = $robots_model->where("open_id", $open_id)->where("number", $vcRobotSerialNo)->find();
         $robot->delete();
-        $group = $group_model->where("open_id", $open_id)->where("vcRobotSerialNo", $vcRobotSerialNo)->select();
-        if ($group) {
-            $group->delete();
-        }
+        Group::destroy(['open_id' => $open_id,"vcRobotSerialNo"=>$vcRobotSerialNo]);
         $this->success('请求成功');
     }
 
@@ -638,5 +641,51 @@ class Other extends Home
         } else {
             $this->success('请求成功');
         }
+    }
+
+    // 获取礼金
+    public function get_cash()
+    {
+        $open_id = $this->open_id;
+        $wechat_model = new Weixin();
+        $phone = $wechat_model->where("open_id", $open_id)->value("phone");
+        $phone = str_replace("=", "", base64_encode($phone));
+        $url = "http://zss.mkstone.club/yunCash/#/goods/$phone";
+        $link = urlencode($url);
+        $weixin = file_get_contents("https://cloud.kuaizhan.com/api/v1/km/genShortLink?appKey=5l2m0Ig69qul&link=$link&format=json");
+        $jsondecode = json_decode($weixin); //对JSON格式的字符串进行编码
+        $array = get_object_vars($jsondecode); //转换成数组
+        if ($array["code"] == 0) {
+            $url = $array["url"];
+        }
+        $this->success('请求成功', $url);
+    }
+
+    // 获取海报图片
+    public function get_cash_img()
+    {
+        $request = request();
+        $data = $request->param();
+        $url = $data["url"];
+        //初始化
+        $curl = curl_init();
+
+        //设置url
+        curl_setopt($curl, CURLOPT_URL, $url);
+
+        // 不返回HTTP头部信息
+        curl_setopt($curl, CURLOPT_HEADER, false);
+
+        // 设置获取的信息以文件流的形式返回
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+        // 执行命令
+        $data = curl_exec($curl);
+
+        // 关闭URL请求
+        curl_close($curl);
+
+        // 显示获得的数据
+        print_r($data);
     }
 }

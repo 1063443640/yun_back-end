@@ -62,7 +62,7 @@ class Weixin extends Backend
                 ->paginate($limit);
 
             foreach ($list as $row) {
-                $row->visible(['id', "flag", 'open_id', 'nickname', 'image', 'money', 'number', 'phone', 'invitation_code', 'superior_invitation_code', 'month_my_profit', 'month_team_profit', 'month_profit', 'unionId','key', 'all_profit', 'withdrawal_amount', 'createtime']);
+                $row->visible(['id', "flag", 'open_id', 'nickname', 'image', 'money', 'number', 'phone', 'invitation_code', 'superior_invitation_code', 'month_my_profit', 'month_team_profit', 'month_profit', 'unionId', 'key', 'all_profit', 'withdrawal_amount', 'createtime']);
             }
 
             $result = array("total" => $list->total(), "rows" => $list->items());
@@ -108,17 +108,18 @@ class Weixin extends Backend
                         if ($weixin_model->where("invitation_code", $invitation_code)->find()) {
                             $this->error(__('邀请码已存在'));
                         }
+                        $superior = $weixin_model->where("superior_invitation_code", $superior_invitation_code)->select();
+                        $superior = collection($superior)->toArray();
+                        $arr = [];
+                        foreach ($superior as $value) {
+                            $sicode["id"] = $value["id"];
+                            $sicode["superior_invitation_code"] = $invitation_code;
+                            array_push($arr, $sicode);
+                        }
+                        $weixin_model->saveAll($arr);
                     }
 
-                    $superior = $weixin_model->where("superior_invitation_code", $superior_invitation_code)->select();
-                    $superior = collection($superior)->toArray();
-                    $arr = [];
-                    foreach ($superior as $value) {
-                        $sicode["id"] = $value["id"];
-                        $sicode["superior_invitation_code"] = $invitation_code;
-                        array_push($arr, $sicode);
-                    }
-                    $weixin_model->saveAll($arr);
+
                     $result = $row->allowField(true)->save($params);
                     Db::commit();
                 } catch (ValidateException $e) {
