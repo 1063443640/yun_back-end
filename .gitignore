@@ -16,3 +16,5 @@ composer.lock
 .svn
 .vscode
 node_modules
+/public/upload/*
+nohup.out
